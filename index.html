@@ -554,8 +554,16 @@
                 time: "DAY 2 - 16:05",
                 text: "門外壞人拍打了幾下門後無果，暫時走開了。你趴在門後屏住呼吸。\n\n此時，你要不要利用手機傳送 SMS 簡訊給對面鄰居張先生求助/提防？",
                 choices: [
-                    { text: "發送 SMS 給張先生求助（警訊發送）", target: "THIEF_NIGHT_SECOND", onSelect: () => { state.hasSentSMS = true; state.battery = Math.max(0, state.battery - 2); } },
-                    { text: "不發送 SMS（保持完全靜默）", target: "THIEF_NIGHT_SECOND", onSelect: () => { state.hasSentSMS = false; } }
+                    { 
+                        text: "發送 SMS 給張先生求助（警訊發送）", 
+                        target: "THIEF_NIGHT_SECOND", 
+                        onSelect: () => { state.hasSentSMS = true; state.battery = Math.max(0, state.battery - 2); } 
+                    },
+                    { 
+                        text: "不發送 SMS（保持完全靜默）", 
+                        target: "THIEF_NIGHT_SECOND", 
+                        onSelect: () => { state.hasSentSMS = false; } 
+                    }
                 ]
             },
 
@@ -581,23 +589,30 @@
                     return `深夜走廊一片漆黑。隔壁傳來金屬撬鎖聲——壞人再次來訪了！而且正朝著你家門口撬鎖破門！\n\n${smsStatus}\n${staminaStatus}\n\n你決定？`;
                 },
                 choices: [
-                    { text: "A. 大聲罵賊（獨自斥責威嚇）", target: "EVALUATE_OTHER_COMBOS" },
-                    { text: "B. 靜默（繼續假裝無人死守）", target: "EVALUATE_OTHER_COMBOS" },
-                    { text: "C. 大聲向鄰居呼救（大喊張先生）", target: "EVALUATE_CALL_RES" }
+                    { 
+                        text: "A. 大聲罵賊（獨自斥責威嚇）", 
+                        target: "EVAL_OTHER" 
+                    },
+                    { 
+                        text: "B. 靜默（繼續假裝無人死守）", 
+                        target: "EVAL_OTHER" 
+                    },
+                    { 
+                        text: "C. 大聲向鄰居呼救（大喊張先生）", 
+                        target: "EVAL_CALL" 
+                    }
                 ]
             },
 
-            // 處理選項 C (向鄰居呼救) 的邏輯判定
-            EVALUATE_CALL_RES: {
+            // 乾淨分流 1：處理大聲呼救
+            EVAL_CALL: {
                 time: "DAY 2 - 23:35",
-                text: "你在門內奮力呼喊對面張先生！",
+                text: "判定中...",
                 choices: [],
                 onEnter: () => {
                     if (state.hasSentSMS) {
-                        // 有 SMS + 喊鄰居 -> 100% GOOD END
                         goToNode("REPELS_THIEF");
                     } else {
-                        // 沒 SMS + 喊鄰居 -> 50% GOOD END / 50% BAD END
                         if (Math.random() < 0.5) {
                             goToNode("REPELS_THIEF");
                         } else {
@@ -607,17 +622,15 @@
                 }
             },
 
-            // 處理其他組合 (選 A 罵賊 或 選 B 靜默) 的體力門檻判定
-            EVALUATE_OTHER_COMBOS: {
+            // 乾淨分流 2：處理其他組合（罵賊或靜默）
+            EVAL_OTHER: {
                 time: "DAY 2 - 23:35",
-                text: "門鎖被賊人強行撬開！衝突爆發！",
+                text: "判定中...",
                 choices: [],
                 onEnter: () => {
                     if (state.stamina >= 70) {
-                        // 體力 >= 70% -> 反抗成功，受傷但生存
                         goToNode("SURVIVED_WOUNDED");
                     } else {
-                        // 體力 < 70% -> 體力不支，BAD END
                         goToNode("BAD_END_2");
                     }
                 }
@@ -629,7 +642,7 @@
                 text: "門鎖被撬開的瞬間，你憑藉充沛的體力（>=70%）揮舞木棍與賊人激戰！雖然手臂被割傷，但你成功將賊人打跑！\n\n你包紮了傷口，堅守到第 3 天救援站成立。",
                 choices: [{ text: "前往救援站", target: "RELIEF_STATION" }],
                 onEnter: () => {
-                    state.stamina -= 30; // 戰鬥體力大扣
+                    state.stamina = Math.max(10, state.stamina - 30);
                     state.morale += 10;
                     addInventory("手臂傷口 (已包紮)");
                 }
