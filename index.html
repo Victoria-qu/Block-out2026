@@ -40,17 +40,17 @@
 
         .game-container {
             width: 100%;
-            max-width: 680px;
+            max-width: 720px;
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* Setup Screen Style */
+        /* Setup Screen */
         .setup-screen {
             padding: 30px;
             display: flex;
@@ -117,56 +117,55 @@
 
         .start-btn:hover { background: #059669; }
 
-        /* HUD Header */
+        /* HUD Dashboard */
         .hud-header {
             background-color: #0f131c;
             padding: 15px;
             border-bottom: 1px solid var(--border-color);
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
 
-        @media (min-width: 480px) {
+        @media (min-width: 520px) {
             .hud-header {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(6, 1fr);
             }
         }
 
         .stat-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 6px;
             display: flex;
             flex-direction: column;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #9ca3af;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-value {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-bright);
         }
 
         .stat-water { color: var(--accent-blue); }
+        .stat-stamina { color: var(--accent-green); }
+        .stat-defense { color: #f43f5e; }
         .stat-battery { color: var(--accent-amber); }
-        .stat-morale { color: var(--accent-green); }
 
-        /* Story Area */
+        /* Story & Event */
         .story-area {
             padding: 24px;
             min-height: 220px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
 
         .time-badge {
@@ -188,7 +187,18 @@
             white-space: pre-line;
         }
 
-        /* Random Event Box */
+        /* Time Decay Alert Box */
+        .decay-box {
+            margin-top: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-left: 4px solid var(--accent-red);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #fca5a5;
+        }
+
         .event-box {
             margin-top: 15px;
             background: rgba(139, 92, 246, 0.1);
@@ -199,16 +209,10 @@
             animation: fadeIn 0.4s ease-out;
         }
 
-        .event-title {
-            color: var(--accent-purple);
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
-        }
-
+        .event-title { color: var(--accent-purple); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
         .event-desc { font-size: 0.95rem; color: #ddd6fe; }
 
-        /* Inventory Drawer */
+        /* Inventory */
         .inventory-bar {
             padding: 10px 24px;
             background: #0f131c;
@@ -225,7 +229,7 @@
         .inventory-items { display: flex; gap: 8px; flex-wrap: nowrap; }
         .inv-tag { background: #1f2937; border: 1px solid #374151; padding: 2px 8px; border-radius: 4px; color: #d1d5db; white-space: nowrap; }
 
-        /* Choices Area */
+        /* Choices */
         .choices-area {
             padding: 20px 24px;
             display: flex;
@@ -249,7 +253,7 @@
 
         .choice-btn:hover { background: #283348; border-color: var(--accent-blue); }
 
-        /* Ending Modal */
+        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -286,12 +290,12 @@
 <body>
 
     <div class="game-container">
-        <!-- 開局設定畫面 (Setup Screen) -->
+        <!-- 開局設定畫面 -->
         <div id="setup-screen" class="setup-screen">
-            <h2 class="setup-title">🏠 開局設定：背景設定</h2>
+            <h2 class="setup-title">🏠 生存開局設定</h2>
 
             <div class="setup-group">
-                <span class="setup-label">1. 家人組合 (影響水糧消耗與防禦能力)</span>
+                <span class="setup-label">1. 家人組合 (影響自然水糧消耗速度與防禦力)</span>
                 <div class="setup-options">
                     <div class="opt-card selected" onclick="selectFamily('solo', this)">👤 獨居</div>
                     <div class="opt-card" onclick="selectFamily('partner', this)">👩‍❤️‍👨 伴侶同住</div>
@@ -300,17 +304,17 @@
             </div>
 
             <div class="setup-group">
-                <span class="setup-label">2. 居住樓層 (影響體力消耗與治安風險)</span>
+                <span class="setup-label">2. 居住樓層 (影響體力消耗速度與安全風險)</span>
                 <div class="setup-options">
                     <div class="opt-card selected" onclick="selectFloor('low', this)">🏢 低樓層 (2樓)</div>
                     <div class="opt-card" onclick="selectFloor('high', this)">🏙️ 高樓層 (25樓)</div>
                 </div>
             </div>
 
-            <button class="start-btn" onclick="initGame()">開始大停電生存任務</button>
+            <button class="start-btn" onclick="initGame()">啟動大停電生存模擬</button>
         </div>
 
-        <!-- 遊戲主介面 (Game Screen) -->
+        <!-- 遊戲主介面 -->
         <div id="game-screen" style="display: none;">
             <div class="hud-header">
                 <div class="stat-card">
@@ -318,16 +322,24 @@
                     <span id="stat-water" class="stat-value stat-water">4.0 L</span>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-label">個人體力</span>
+                    <span id="stat-stamina" class="stat-value stat-stamina">100%</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">防禦能力</span>
+                    <span id="stat-defense" class="stat-value stat-defense">30%</span>
+                </div>
+                <div class="stat-card">
                     <span class="stat-label">手機電量</span>
                     <span id="stat-battery" class="stat-value stat-battery">68%</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">士氣值</span>
-                    <span id="stat-morale" class="stat-value stat-morale">80%</span>
+                    <span id="stat-morale" class="stat-value">80%</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">時間線</span>
-                    <span id="stat-time" class="stat-value" style="font-size: 0.95rem;">DAY 1 23:00</span>
+                    <span id="stat-time" class="stat-value" style="font-size: 0.85rem;">DAY 1 23:00</span>
                 </div>
             </div>
 
@@ -339,6 +351,7 @@
             <div class="story-area">
                 <div id="time-badge" class="time-badge">DAY 1 - 23:00</div>
                 <div id="story-text" class="story-text"></div>
+                <div id="decay-container"></div>
                 <div id="event-container"></div>
             </div>
 
@@ -357,9 +370,8 @@
     </div>
 
     <script>
-        // 設定與變數
         let config = { family: 'solo', floor: 'low' };
-        let state = { water: 4.0, battery: 68, morale: 80, time: "DAY 1 23:00", inventory: [], currentNode: "START" };
+        let state = { water: 4.0, stamina: 100, defense: 30, battery: 68, morale: 80, time: "DAY 1 23:00", currentNode: "START" };
 
         function selectFamily(val, el) {
             config.family = val;
@@ -377,36 +389,71 @@
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
 
-            // 根據選擇設定初始狀態
             state.inventory = ["現金 HK$450"];
+            state.stamina = 100;
             
             if (config.family === 'solo') {
-                state.water = 3.0; state.morale = 60;
+                state.water = 3.0;
+                state.defense = 30;
+                state.morale = 60;
                 state.inventory.push("備用水 3L (獨居)");
             } else if (config.family === 'partner') {
-                state.water = 5.0; state.morale = 85;
+                state.water = 5.0;
+                state.defense = 65;
+                state.morale = 85;
                 state.inventory.push("備用水 5L (雙人)");
             } else { // parents
-                state.water = 6.0; state.morale = 75;
+                state.water = 6.0;
+                state.defense = 80;
+                state.morale = 75;
                 state.inventory.push("備用水 6L (家庭)");
             }
 
             goToNode("START");
         }
 
-        const randomEvents = [
-            { title: "🐾 走失的橘貓", desc: "在走廊遇到小貓，分了牠點餅乾，貓蹭了蹭你。士氣 +10%。", effect: () => state.morale = Math.min(100, state.morale + 10) },
-            { title: "💧 幸運的發現", desc: "在後樓梯間發現一樽無人看管的 1.5L 水樽！", effect: () => { state.water += 1.5; addInventory("礦泉水 1.5L"); } },
-            { title: "🍦 雪條大餐", desc: "家人拿出了快融化的雪條，大家開心吃完！士氣 +15%。", effect: () => state.morale = Math.min(100, state.morale + 15) },
-            { title: "🌧️ 傾盆大雨", desc: "窗外下大雨，用桶接到了 3L 洗滌雨水！", effect: () => addInventory("雨水 3L") }
-        ];
+        // 時間流逝消耗計算 (Time-Based Resource Decay)
+        function applyTimeDecay(nodeKey) {
+            if (nodeKey === 'START') return null;
+
+            // 1. 水分自然消耗（依人數）
+            let waterRate = config.family === 'solo' ? 0.3 : (config.family === 'partner' ? 0.5 : 0.7);
+            
+            // 2. 體力自然消耗（高樓層額外疲勞）
+            let staminaRate = config.floor === 'high' ? 12 : 6;
+
+            // 3. 士氣自然流逝
+            let moraleRate = 5;
+
+            state.water = Math.max(0, state.water - waterRate);
+            state.stamina = Math.max(0, state.stamina - staminaRate);
+            state.morale = Math.max(0, state.morale - moraleRate);
+
+            return `⏳ 時間流逝：飲用水 -${waterRate}L | 體力 -${staminaRate}% | 士氣 -${moraleRate}%`;
+        }
+
+        function getRandomEvent() {
+            const events = [
+                { title: "🐾 走失的橘貓", desc: "在走廊遇到小貓，分了牠點餅乾，小貓蹭了蹭你。士氣 +10%。", effect: () => state.morale = Math.min(100, state.morale + 10) },
+                { title: "💧 幸運的發現", desc: "在後樓梯間發現一樽無人看管的 1.5L 水樽！", effect: () => { state.water += 1.5; addInventory("礦泉水 1.5L"); } },
+                { 
+                    title: "🍦 雪糕驚喜", 
+                    desc: config.family === 'solo' 
+                        ? "你趁雪櫃完全解凍前，獨自一口氣吃完了雪盒裡的兩大盒雪糕，心情大好！士氣 +15%。" 
+                        : "家人拿出了雪櫃裡快融化的雪條，大家圍坐在一起開心分著吃完！士氣 +15%。", 
+                    effect: () => state.morale = Math.min(100, state.morale + 15) 
+                },
+                { title: "🌧️ 傾盆大雨", desc: "窗外下大雨，用桶接到了 3L 洗滌雨水！", effect: () => addInventory("雨水 3L") }
+            ];
+            return events[Math.floor(Math.random() * events.length)];
+        }
 
         const nodes = {
             START: {
                 time: "DAY 1 - 23:00",
                 text: () => {
-                    let famText = config.family === 'solo' ? "你獨自一人坐在客廳。" : (config.family === 'partner' ? "你和伴侶相視無言。" : "你和父母圍坐在客廳。");
-                    let floorText = config.floor === 'high' ? "居住在 25 樓的高層，窗外一片漆黑。" : "居住在 2 樓的低層，街上的嘈雜聲清晰可聞。";
+                    let famText = config.family === 'solo' ? "你獨自一人坐在黑暗的客廳。" : (config.family === 'partner' ? "你和伴侶相視無言。" : "你和父母圍坐在客廳。");
+                    let floorText = config.floor === 'high' ? "居住在 25 樓的高層，爬樓梯極耗體力。" : "居住在 2 樓的低層，進出便利但較易受騷擾。";
                     return `全區突發大規模停電！${famText}${floorText}\n\n大廈水泵即將停運，隔壁陳太太敲門說街角 24 小時超市還有備用電，大家正在排隊搶購。你決定？`;
                 },
                 choices: [
@@ -417,16 +464,16 @@
             SUPERMARKET: {
                 time: "DAY 1 - 23:45",
                 text: () => {
-                    let staminaLoss = config.floor === 'high' ? "（高樓層爬樓梯消耗了更多電量與體力）" : "";
-                    return `你衝到超市，貨架幾乎被空。只剩最後一箱蒸餾水，一個中年男士懇求你讓給他。${staminaLoss}\n\n你決定？`;
+                    let staminaText = config.floor === 'high' ? "（高樓層往返讓你額外消耗了更多體力與手機電量）" : "（低樓層輕鬆到達，體力消耗較小）";
+                    return `你衝到超市，貨架幾乎被空。只剩最後一箱蒸餾水，一個中年男士懇求你讓給他。${staminaText}\n\n你決定？`;
                 },
                 choices: [
                     { text: "A. 堅持各分半箱水", target: "SHARE_WATER" },
                     { text: "B. 放棄水箱，改買黃桃罐頭與沙丁魚", target: "BUY_FOOD" }
                 ],
                 onEnter: () => {
-                    if (config.floor === 'high') state.battery -= 15; // 高樓層扣更多電
-                    else state.battery -= 5;
+                    if (config.floor === 'high') { state.stamina -= 15; state.battery -= 10; }
+                    else { state.stamina -= 5; state.battery -= 5; }
                 }
             },
             SHARE_WATER: {
@@ -455,8 +502,8 @@
                 ]
             },
             SOCCER_LATE: {
-                time: "DAY 2 - 08:30", text: "現場失控被封鎖，你只領到了 2L 水。", choices: [{ text: "返回大廈", target: "RETURN_BUILDING" }],
-                onEnter: () => { state.water += 2; }
+                time: "DAY 2 - 08:30", text: "現場失控被封鎖，你耗費巨量體力只領到了 2L 水。", choices: [{ text: "返回大廈", target: "RETURN_BUILDING" }],
+                onEnter: () => { state.water += 2; state.stamina -= 15; }
             },
             WATER_SUCCESS: {
                 time: "DAY 2 - 09:15", text: "你成功拿到 10L 水！回到大堂遇見鄰居張先生，他想用電池與手電筒跟你換水或食物。",
@@ -471,8 +518,8 @@
                 onEnter: () => { state.water += 3; }
             },
             BARTER_SUCCESS: {
-                time: "DAY 2 - 09:45", text: "你換到了 8 節 AA 電池與強光手電筒！", choices: [{ text: "回家防守", target: "HOME_DEFENSE" }],
-                onEnter: () => { state.water -= 1; addInventory("AA電池x8"); addInventory("強光手電筒"); }
+                time: "DAY 2 - 09:45", text: "你換到了 8 節 AA 電池與強光手電筒！防禦能力上升！", choices: [{ text: "回家防守", target: "HOME_DEFENSE" }],
+                onEnter: () => { state.water -= 1; state.defense += 15; addInventory("AA電池x8"); addInventory("強光手電筒"); }
             },
             RETURN_BUILDING: {
                 time: "DAY 2 - 12:00", text: "回到家中，氣溫升高，十分悶熱。", choices: [{ text: "等待下午", target: "HOME_DEFENSE" }]
@@ -480,8 +527,8 @@
             HOME_DEFENSE: {
                 time: "DAY 2 - 16:00",
                 text: () => {
-                    let floorWarning = config.floor === 'low' ? "（低樓層門口雜音特別明顯）" : "";
-                    return `假志願者敲門要求登記糧水，發現對方口袋藏有硬物！${floorWarning}\n\n你決定？`;
+                    let defWarning = config.family === 'solo' ? "（獨居且防禦力較低，開門風險極高）" : "";
+                    return `假志願者敲門要求登記糧水，發現對方口袋藏有硬物！${defWarning}\n\n你決定？`;
                 },
                 choices: [
                     { text: "A. 保持肅靜假裝家中無人", target: "THIEF_NIGHT" },
@@ -491,17 +538,17 @@
             THIEF_NIGHT: {
                 time: "DAY 2 - 23:30",
                 text: () => {
-                    let soloNotice = config.family === 'solo' ? "（你獨自一人，正面對抗極度危險）" : "";
-                    return `深夜走廊傳來撬鎖聲！賊人正在嘗試破門！${soloNotice}\n\n你決定？`;
+                    return `深夜走廊傳來撬鎖聲！賊人正在嘗試破門！\n\n你決定？`;
                 },
                 choices: [
-                    { text: "A. 大聲呼喊鄰居，聯手威嚇喊賊", target: "REPELS_THIEF" },
+                    { text: "A. 大聲呼喊鄰居張先生，聯手威嚇喊賊", target: "REPELS_THIEF" },
                     { text: "B. 保持沉默死守", target: "BAD_END_2" }
                 ]
             },
             REPELS_THIEF: {
-                time: "DAY 3 - 08:00", text: "嚇退賊人！第 3 天中學救援站成立發放物資。",
-                choices: [{ text: "前往救援站", target: "RELIEF_STATION" }]
+                time: "DAY 3 - 08:00", text: "嚇退賊人！第 3 天中學救援站成立發放物資，你與鄰居建立聯合巡邏隊。",
+                choices: [{ text: "前往救援站", target: "RELIEF_STATION" }],
+                onEnter: () => { state.defense += 20; state.morale += 20; }
             },
             RELIEF_STATION: {
                 time: "DAY 3 - 10:45", text: "順利領到乾糧與 30 片淨水片！",
@@ -516,6 +563,10 @@
                 time: "DAY 2 - 23:45", isEnding: true, rank: "F", title: "【BAD END 2：孤立無援】",
                 desc: "賊人破門而入，物資被劫掠一空，你在混亂中受傷……"
             },
+            BAD_END_EXHAUST: {
+                time: "DAY 2 - 18:00", isEnding: true, rank: "F", title: "【BAD END：身體衰竭】",
+                desc: "你的體力或飲用水完全耗盡。在酷熱與嚴重脫水下昏迷失救……"
+            },
             HAPPY_END: {
                 time: "DAY 3 - 21:40", isEnding: true, rank: "S", title: "【PERFECT END：完美生存】",
                 desc: "晚上 9:40，供電與通訊全面恢復！憑藉著果斷決策與鄰里互助，你順利度過了危機！"
@@ -526,8 +577,10 @@
 
         function updateHUD() {
             document.getElementById('stat-water').innerText = state.water.toFixed(1) + " L";
-            document.getElementById('stat-battery').innerText = state.battery + "%";
-            document.getElementById('stat-morale').innerText = state.morale + "%";
+            document.getElementById('stat-stamina').innerText = Math.round(state.stamina) + "%";
+            document.getElementById('stat-defense').innerText = Math.round(state.defense) + "%";
+            document.getElementById('stat-battery').innerText = Math.round(state.battery) + "%";
+            document.getElementById('stat-morale').innerText = Math.round(state.morale) + "%";
             document.getElementById('stat-time').innerText = state.time;
             document.getElementById('time-badge').innerText = state.time;
             document.getElementById('inventory-list').innerHTML = state.inventory.map(i => `<span class="inv-tag">${i}</span>`).join('');
@@ -537,15 +590,32 @@
             state.currentNode = nodeKey;
             const node = nodes[nodeKey];
             state.time = node.time;
+
+            // 1. 先套用事件/選項帶來的數值改變
             if (node.onEnter) node.onEnter();
+
+            // 2. 扣減時間自然消耗
+            let decayMsg = applyTimeDecay(nodeKey);
+
+            // 3. 檢查是否觸發衰竭死亡 (Check Exhaustion Death)
+            if (!node.isEnding && (state.water <= 0 || state.stamina <= 0)) {
+                goToNode("BAD_END_EXHAUST");
+                return;
+            }
+
             updateHUD();
 
+            // 渲染劇情與時間衰減提示
             document.getElementById('story-text').innerText = typeof node.text === 'function' ? node.text() : node.text;
 
+            const decayContainer = document.getElementById('decay-container');
+            decayContainer.innerHTML = decayMsg ? `<div class="decay-box">${decayMsg}</div>` : '';
+
+            // 渲染 30% 隨機事件
             const eventContainer = document.getElementById('event-container');
             eventContainer.innerHTML = '';
             if (!node.isEnding && nodeKey !== 'START' && Math.random() < 0.3) {
-                const ev = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+                const ev = getRandomEvent();
                 ev.effect();
                 eventContainer.innerHTML = `<div class="event-box"><div class="event-title">${ev.title}</div><div class="event-desc">${ev.desc}</div></div>`;
             }
