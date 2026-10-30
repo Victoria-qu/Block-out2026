@@ -382,7 +382,11 @@
 
     <script>
         let config = { family: 'solo', floor: 'low' };
-        let state = { water: 4.0, stamina: 100, defense: 30, battery: 68, morale: 80, time: "DAY 1 23:00", currentNode: "START" };
+        let state = { 
+            water: 4.0, stamina: 100, defense: 30, battery: 68, morale: 80, 
+            time: "DAY 1 23:00", currentNode: "START",
+            hasSentSMS: false // 記錄是否曾發送求助 SMS 給鄰居張先生
+        };
 
         function selectFamily(val, el) {
             config.family = val;
@@ -402,6 +406,7 @@
 
             state.inventory = ["現金 HK$450"];
             state.stamina = 100;
+            state.hasSentSMS = false;
             
             if (config.family === 'solo') {
                 state.water = 3.0; state.defense = 30; state.morale = 60;
@@ -424,17 +429,13 @@
             const isRestNode = ['SHARE_WATER', 'BUY_FOOD', 'WAIT_HOME', 'RETURN_BUILDING'].includes(nodeKey);
 
             if (isRestNode) {
-                // 夜間/等候休養：恢復 30%-50% 體力
                 let recovery = Math.floor(Math.random() * 21) + 30; // 30 ~ 50
                 state.stamina = Math.min(100, state.stamina + recovery);
-                
-                // 扣除基礎睡眠水份消耗
                 let waterRate = config.family === 'solo' ? 0.2 : 0.5;
                 state.water = Math.max(0, state.water - waterRate);
 
                 return { type: 'rest', msg: `🌙 經過夜間等候與休息：體力恢復 +${recovery}% | 飲用水 -${waterRate}L` };
             } else {
-                // 一般行動時間消耗
                 let waterRate = config.family === 'solo' ? 0.3 : 0.6;
                 let staminaRate = config.floor === 'high' ? 12 : 6;
                 let moraleRate = 4;
@@ -539,27 +540,70 @@
             RETURN_BUILDING: {
                 time: "DAY 2 - 12:00", text: "回到家中，氣溫升高，十分悶熱。", choices: [{ text: "等待下午", target: "HOME_DEFENSE" }]
             },
+            
+            // 第一次遭遇壞人（初次探路／假志願者）
             HOME_DEFENSE: {
                 time: "DAY 2 - 16:00",
+                text: () => `門外傳來急促敲門聲！自稱『社區志願者』要求登記糧水，透過貓眼你發現對方沒有識別背心，口袋裡鼓囊囊的似乎藏有工具或武器！\n\n面對第一次壞人試探，你決定？`,
+                choices: [
+                    { text: "A. 靜默（假裝家中無人）", target: "DEFENSE_SILENT_SMS" },
+                    { text: "B. 隔門罵賊（大聲威嚇叫對方滾）", target: "DEFENSE_SHOUT_FIRST" },
+                    { text: "C. 大聲向鄰居呼救（隔門大喊張先生）", target: "DEFENSE_CALL_NEIGHBOR_FIRST" }
+                ]
+            },
+
+            // 第一次選擇靜默後 -> 詢問是否傳 SMS 給鄰居
+            DEFENSE_SILENT_SMS: {
+                time: "DAY 2 - 16:05",
+                text: "門外壞人拍打了幾下門後無果，暫時走開了。你趴在門後屏住呼吸。\n\n此時，你要不要利用手機傳送 SMS 簡訊給對面鄰居張先生求助/提防？",
+                choices: [
+                    { text: "發送 SMS 給張先生求助（記錄警訊）", target: "THIEF_NIGHT_SECOND", onSelect: () => { state.hasSentSMS = true; state.battery -= 2; } },
+                    { text: "不發送 SMS（保持完全靜默）", target: "THIEF_NIGHT_SECOND", onSelect: () => { state.hasSentSMS = false; } }
+                ]
+            },
+
+            // 第一階段選擇隔門罵賊
+            DEFENSE_SHOUT_FIRST: {
+                time: "DAY 2 - 16:05",
+                text: "你隔著鐵閘門大聲斥責！門外的人冷笑了一聲，悻悻然離去。但這暴露了你家有人且戒備心高。",
+                choices: [{ text: "等待夜間到來", target: "THIEF_NIGHT_SECOND" }],
+                onEnter: () => { state.hasSentSMS = false; }
+            },
+
+            // 第一階段選擇直接向鄰居大聲呼救 -> 直接嚇退賊人並組隊
+            DEFENSE_CALL_NEIGHBOR_FIRST: {
+                time: "DAY 2 - 16:10",
+                text: "你在門內大聲呼喊張先生！對面張先生立刻拿著鐵鎚開門相應，壞人見狀慌忙沿樓梯逃走！\n\n你們成功防禦並組成了 12 樓治安巡邏隊！",
+                choices: [{ text: "進入第 3 天救援站", target: "RELIEF_STATION" }],
+                onEnter: () => { state.defense += 25; state.morale += 20; }
+            },
+
+            // 賊人第二次深夜二次來訪
+            THIEF_NIGHT_SECOND: {
+                time: "DAY 2 - 23:30",
                 text: () => {
-                    let defWarning = config.family === 'solo' ? "（獨居且防禦力較低，開門風險極高）" : "";
-                    return `假志願者敲門要求登記糧水，發現對方口袋藏有硬物！${defWarning}\n\n你決定？`;
+                    let smsStatus = state.hasSentSMS ? "（提示：你之前已傳送 SMS 給張先生，他已有心理準備）" : "（提示：你從未向鄰居傳送過 SMS）";
+                    return `深夜走廊一片漆黑。隔壁傳來金屬撬鎖聲——壞人再次來訪了！而且正朝著你家門口走來！\n\n${smsStatus}\n\n你決定？`;
                 },
                 choices: [
-                    { text: "A. 保持肅靜假裝家中無人", target: "THIEF_NIGHT" },
-                    { text: "B. 開門與對方對話", target: "BAD_END_1" }
+                    { text: "A. 大聲罵賊（獨自斥責威嚇）", target: "EVALUATE_NIGHT_CHOICE", extra: "SHOUT" },
+                    { text: "B. 靜默（繼續假裝無人死守）", target: "EVALUATE_NIGHT_CHOICE", extra: "SILENT" },
+                    { text: "C. 大聲向鄰居呼救（大喊張先生）", target: "EVALUATE_NIGHT_CHOICE", extra: "CALL" }
                 ]
             },
-            THIEF_NIGHT: {
-                time: "DAY 2 - 23:30",
-                text: () => `深夜走廊傳來撬鎖聲！賊人正在嘗試破門！\n\n你決定？`,
-                choices: [
-                    { text: "A. 大聲呼喊鄰居張先生，聯手威嚇喊賊", target: "REPELS_THIEF" },
-                    { text: "B. 保持沉默死守", target: "BAD_END_2" }
-                ]
+
+            // 處理第二次來訪的邏輯判定
+            EVALUATE_NIGHT_CHOICE: {
+                time: "DAY 2 - 23:35",
+                text: "處理判定中...",
+                choices: [],
+                onEnter: () => {
+                    // 取得剛剛選的子選項（利用全域標記或判斷）
+                }
             },
+
             REPELS_THIEF: {
-                time: "DAY 3 - 08:00", text: "嚇退賊人！第 3 天中學救援站成立發放物資，你與鄰居建立聯合巡邏隊。",
+                time: "DAY 3 - 08:00", text: "張先生及時回應！你們成功嚇退了賊人，並建立 12 樓聯合巡邏隊！",
                 choices: [{ text: "前往救援站", target: "RELIEF_STATION" }],
                 onEnter: () => { state.defense += 20; state.morale += 20; }
             },
@@ -568,13 +612,13 @@
                 choices: [{ text: "帶物資回家落袋為安", target: "HAPPY_END" }],
                 onEnter: () => { state.water += 3; addInventory("淨水片x30"); }
             },
-            BAD_END_1: {
-                time: "DAY 2 - 16:15", isEnding: true, rank: "F", title: "【BAD END 1：引狼入室】",
-                desc: "你打開了門。匪徒破門而入搶光了所有物資，全家陷入絕境……"
-            },
             BAD_END_2: {
-                time: "DAY 2 - 23:45", isEnding: true, rank: "F", title: "【BAD END 2：孤立無援】",
-                desc: "賊人破門而入，物資被劫掠一空，你在混亂中受傷……"
+                time: "DAY 2 - 23:45", isEnding: true, rank: "F", title: "【BAD END 2：孤立無援破門】",
+                desc: "由於你選擇了靜默或獨自大罵，且未提前與鄰居建立聯絡，賊人確認無人包圍後強行破開門鎖！物資被搶劫一空，你在混亂中受傷失救……"
+            },
+            BAD_END_50_PERCENT: {
+                time: "DAY 2 - 23:45", isEnding: true, rank: "F", title: "【BAD END：鄰居反應不及 (50%觸發)】",
+                desc: "你深夜大聲呼救，但因為此前從未發過 SMS 警訊給張先生，張先生在熟睡中反應不及，等他拿著工具出來時，賊人已破開你的門鎖……"
             },
             BAD_END_EXHAUST: {
                 time: "DAY 2 - 18:00", isEnding: true, rank: "F", title: "【BAD END：身體衰竭】",
@@ -599,8 +643,32 @@
             document.getElementById('inventory-list').innerHTML = state.inventory.map(i => `<span class="inv-tag">${i}</span>`).join('');
         }
 
-        function goToNode(nodeKey) {
+        function goToNode(nodeKey, extraParam = null) {
             state.currentNode = nodeKey;
+
+            // 特殊邏輯處理二次來訪判定
+            if (nodeKey === 'THIEF_NIGHT_SECOND' && extraParam) {
+                if (extraParam === 'SHOUT' || extraParam === 'SILENT') {
+                    // 二次來訪選大聲罵賊或靜默 -> 必定 BAD END
+                    goToNode("BAD_END_2");
+                    return;
+                } else if (extraParam === 'CALL') {
+                    if (state.hasSentSMS) {
+                        // 有傳過 SMS + 選大聲呼救 -> 100% 成功
+                        goToNode("REPELS_THIEF");
+                        return;
+                    } else {
+                        // 沒傳過 SMS + 選大聲呼救 -> 50% BAD END
+                        if (Math.random() < 0.5) {
+                            goToNode("BAD_END_50_PERCENT");
+                        } else {
+                            goToNode("REPELS_THIEF");
+                        }
+                        return;
+                    }
+                }
+            }
+
             const node = nodes[nodeKey];
             state.time = node.time;
 
@@ -646,7 +714,10 @@
                     const btn = document.createElement('button');
                     btn.className = 'choice-btn';
                     btn.innerText = c.text;
-                    btn.onclick = () => goToNode(c.target);
+                    btn.onclick = () => {
+                        if (c.onSelect) c.onSelect();
+                        goToNode(c.target, c.extra || null);
+                    };
                     choicesContainer.appendChild(btn);
                 });
             }
